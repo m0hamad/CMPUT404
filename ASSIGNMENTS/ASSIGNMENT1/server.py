@@ -43,6 +43,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
     def find_content_in_directory(self, content):
 
+        # print((os.path.abspath(content) + "/www" + content))
+        # return (os.path.abspath(content) + "/www" + content)
         pass
 
     #As per assignment requirements, only text/html and text/css are supported
@@ -51,15 +53,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
         #https://www.tutorialspoint.com/python/string_endswith.htm
         if content.endswith(".css"):
 
-            return "Content-Type: text/css"
+            return "Content-Type: text/css\r\n"
         
         elif content.endswith(".html"):
             
-            return "Content-Type: text/html"
+            return "Content-Type: text/html\r\n"
 
-    def send_message_response(self, content):
+    def send_message_response(self, content, data):
 
-        pass
+        content = open(self.find_content_in_directory(content)).read()
+        print(content)
+        status_code = "HTTP/1.1 200 OK\r\n"
+        print(status_code)
+        mime_type = self.get_mime_type(content)
+        print(mime_type)
+        connection = data[-1]
+        print(connection)
+        
+        self.request.send((status_code + mime_type + connection + content))
     
     def handle(self):
 
@@ -70,10 +81,16 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         #self.request.sendall(bytearray("OK",'utf-8'))
 
+        # Get resource type
         content = self.data[0].split(" ")[1]
-        #in_directory_content = self.find_content_in_directory(content)
 
-        self.error_404_not_found(content)
+
+        #in_directory_content = self.find_content_in_directory(content)
+        try:
+            self.send_message_response(content, self.data)
+            
+        except:
+            self.error_404_not_found(content)
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
