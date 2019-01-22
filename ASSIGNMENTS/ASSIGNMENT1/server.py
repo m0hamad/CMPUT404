@@ -1,5 +1,5 @@
 #  coding: utf-8 
-import os # For dealing with ./www folder
+import os # For dealing with ./www and /deep folders
 import socketserver
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
@@ -20,12 +20,6 @@ import socketserver
 # Furthermore it is derived from the Python documentation examples thus
 # some of the code is Copyright © 2001-2013 Python Software
 # Foundation; All Rights Reserved
-#
-# http://docs.python.org/2/library/socketserver.html
-#
-# run: python freetests.py
-
-# try: curl -v -X GET http://127.0.0.1:8080/nc local
 
 
 # https://docs.python.org/3/library/socketserver.html
@@ -35,17 +29,18 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         status_code = "HTTP/1.1 404 Not Found\r\n"
         connection = "Connection: close\r\n\r\n"
-        body = ("<html>\n<body>404 - Sorry, could not find the following content: "
+        content = ("<html>\n<body>Error 404. Sorry, could not find the following content: "
                 + content
                 + " </body>\n</html>")
 
-        self.request.send((status_code + connection + body).encode("utf-8"))
+        self.request.send((status_code + connection + content).encode("utf-8"))
 
     def find_content_in_directory(self, content):
 
-        # print((os.path.abspath(content) + "/www" + content))
-        # return (os.path.abspath(content) + "/www" + content)
-        pass
+        print((os.path.relpath(os.curdir) + "/www" + content))
+        return (os.path.abspath(os.curdir) + "/www" + content)
+
+        # return os.getcwd() + "/www" + content
 
     #As per assignment requirements, only text/html and text/css are supported
     def get_mime_type(self, content):
@@ -59,18 +54,38 @@ class MyWebServer(socketserver.BaseRequestHandler):
             
             return "Content-Type: text/html\r\n"
 
+    def return_405_error(self, content, data):
+        
+        print("405 FOUR OH FIVE")
+        status_code = "HTTP/1.1 \r\n"
+        print("405 FOUR OH FIVE")
+        connection = data[-1] + "\r\n\r\n"
+        print("405 FOUR OH FIVE")
+        #content = print("<html>\n<body 405 Method not allowed to access " + content + ". </body>\n</html>")
+        content = ("<html>\n<body> {'Message' :The requested resource does not support http method 'GET'.}"
+                + " </body>\n</html>")
+
+        self.request.send((status_code + connection + content).encode("utf-8"))
+        
     def send_message_response(self, content, data):
 
-        content = open(self.find_content_in_directory(content)).read()
         print(content)
+        new_content = open(self.find_content_in_directory(content)).read()
+        print(new_content)
         status_code = "HTTP/1.1 200 OK\r\n"
         print(status_code)
         mime_type = self.get_mime_type(content)
         print(mime_type)
-        connection = data[-1]
+        accept = data[1] + "\r\n"
+        print(accept)
+        host = data[2] + "\r\n"
+        print(host)
+        user_agent = data[3] + "\r\n"
+        print(user_agent)
+        connection = data[-1] + "\r\n\r\n"
         print(connection)
         
-        self.request.send((status_code + mime_type + connection + content))
+        self.request.send((status_code + mime_type + accept + host + user_agent + connection + new_content).encode("utf-8"))
     
     def handle(self):
 
@@ -79,18 +94,23 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip().decode("utf-8").split("\r\n")
         print ("Got a request of: %s\n" % self.data)
 
-        #self.request.sendall(bytearray("OK",'utf-8'))
+        #self.request.sendall(bytearray("OK",'utf-8))
 
         # Get resource type
         content = self.data[0].split(" ")[1]
+        print("THIS IS THE CONTENT: ", content)
 
 
         #in_directory_content = self.find_content_in_directory(content)
-        try:
+        if content.endswith("/"):
+            self.return_405_error(content, self.data)
+            s
+        elif self.get_mime_type(content):
             self.send_message_response(content, self.data)
             
-        except:
+        else:
             self.error_404_not_found(content)
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
