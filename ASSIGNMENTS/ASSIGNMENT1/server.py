@@ -1,5 +1,6 @@
 import os # For dealing with root ./www and /deep directories
 import socketserver
+from pathlib import Path
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -27,7 +28,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def find_content_in_directory(self, content):
 
         print(os.path.abspath(os.getcwd() + "/www" + content))
-        return (os.path.abspath(os.getcwd() + "/www" + content))
+
+        path_ = os.path.abspath(os.getcwd() + "/www" + content)
+
+        return path_
 
     #As per assignment requirements, only text/html and text/css are supported
     def get_mime_type(self, content):
@@ -64,10 +68,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
     def respond_301(self):
         status_code = "HTTP/1.1 301 Moved Permanently\r\n"
+        content_type = "Content-Type: text/html\r\n"
         connection = "Connection: close \r\n\r\n"
         content = ("<html>\n<body> Error 301. Content Moved Permanently. </body>\n</html>")
 
-        self.request.send((status_code + connection + content).encode("utf-8"))
+        self.request.send((status_code + content_type + connection + content).encode("utf-8"))
 
     def respond_404(self, content):
 
@@ -101,19 +106,20 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         in_directory_content = self.find_content_in_directory(content)
 
-        print(content + "CONTENTTTTT")
-        print(in_directory_content + "IN DIRECTORY CONTENT")
+        if content[-1] == "/":
+            in_directory_content += "index.html"
 
         try:
             if status_code != "GET":
                 self.respond_405(content, self.data)
 
-            elif os.path.exists(in_directory_content):
-                if in_directory_content[-1] != '/' and os.path.isdir(in_directory_content):
-                    self.respond_301()
+            if Path(in_directory_content).exists() and "www" in in_directory_content:
 
-                else:
+                if Path(in_directory_content).is_file():
                     self.respond_200(in_directory_content, content, self.data)
+                    
+                else:
+                    self.respond_301()
 
             else:
                 self.respond_404(content)

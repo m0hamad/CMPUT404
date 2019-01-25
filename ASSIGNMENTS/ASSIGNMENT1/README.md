@@ -12,6 +12,7 @@ Sources:
 * https://stackoverflow.com/questions/606191/convert-bytes-to-a-string
 * https://www.tutorialspoint.com/python/string_endswith.htm
 * https://docs.python.org/3/library/socketserver.html
+* https://stackoverflow.com/questions/51520/how-to-get-an-absolute-file-path-in-python
 
 Contributors / Licensing
 ========================
