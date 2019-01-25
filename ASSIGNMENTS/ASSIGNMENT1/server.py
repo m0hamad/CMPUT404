@@ -1,5 +1,4 @@
-#  coding: utf-8 
-import os # For dealing with ./www and /deep folders
+import os # For dealing with root ./www and /deep directories
 import socketserver
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
@@ -25,22 +24,10 @@ import socketserver
 # https://docs.python.org/3/library/socketserver.html
 class MyWebServer(socketserver.BaseRequestHandler):
 
-    def error_404_not_found(self, content):
-
-        status_code = "HTTP/1.1 404 Not Found\r\n"
-        connection = "Connection: close\r\n\r\n"
-        content = ("<html>\n<body>Error 404. Sorry, could not find the following content: "
-                + content
-                + " </body>\n</html>")
-
-        self.request.send((status_code + connection + content).encode("utf-8"))
-
     def find_content_in_directory(self, content):
-
-        print((os.path.relpath(os.curdir) + "/www" + content))
-        return (os.path.abspath(os.curdir) + "/www" + content)
-
-        # return os.getcwd() + "/www" + content
+        
+        print(os.path.abspath(os.getcwd() + "/www" + content))
+        return (os.path.abspath(os.getcwd() + "/www" + content))
 
     #As per assignment requirements, only text/html and text/css are supported
     def get_mime_type(self, content):
@@ -52,25 +39,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         elif content.endswith(".html"):
             
-            return "Content-Type: text/html\r\n"
-
-    def return_405_error(self, content, data):
-        
-        print("405 FOUR OH FIVE")
-        status_code = "HTTP/1.1 \r\n"
-        print("405 FOUR OH FIVE")
-        connection = data[-1] + "\r\n\r\n"
-        print("405 FOUR OH FIVE")
-        #content = print("<html>\n<body 405 Method not allowed to access " + content + ". </body>\n</html>")
-        content = ("<html>\n<body> {'Message' :The requested resource does not support http method 'GET'.}"
-                + " </body>\n</html>")
-
-        self.request.send((status_code + connection + content).encode("utf-8"))
-        
-    def send_message_response(self, content, data):
+            return "Content-Type: text/html\r\n"   
+    
+    # Response body resembles request body that server gets from the client.
+    def respond_200(self, in_directory_content, content, data):
 
         print(content)
-        new_content = open(self.find_content_in_directory(content)).read()
+        new_content = open(in_directory_content).read()
         print(new_content)
         status_code = "HTTP/1.1 200 OK\r\n"
         print(status_code)
@@ -85,7 +60,30 @@ class MyWebServer(socketserver.BaseRequestHandler):
         connection = data[-1] + "\r\n\r\n"
         print(connection)
         
-        self.request.send((status_code + mime_type + accept + host + user_agent + connection + new_content).encode("utf-8"))
+        self.request.sendall((status_code + mime_type + accept + host + user_agent + connection + new_content).encode("utf-8"))
+
+    def respond_301(self):
+        status_code = "HTTP/1.1 \r\n"
+        connection = "Connection: close \r\n\r\n"
+        content = ("<html>\n<body> Error 301. Content Moved Permanently. </body>\n</html>")
+
+        self.request.sendall((status_code + connection + content).encode("utf-8"))
+
+    def respond_404(self, content):
+
+        status_code = "HTTP/1.1 404 Not Found\r\n"
+        connection = "Connection: close\r\n\r\n"
+        content = ("<html>\n<body>Error 404. Sorry, content not found. </body>\n</html>")
+
+        self.request.send((status_code + connection + content).encode("utf-8"))
+
+    def respond_405(self, content, data):
+        
+        status_code = "HTTP/1.1 \r\n"
+        connection = data[-1] + "\r\n\r\n"
+        content = ("<html>\n<body> Error 405. The requested content does not support http method 'GET'. </body>\n</html>")
+
+        self.request.send((status_code + connection + content).encode("utf-8"))
     
     def handle(self):
 
@@ -97,19 +95,30 @@ class MyWebServer(socketserver.BaseRequestHandler):
         #self.request.sendall(bytearray("OK",'utf-8))
 
         # Get resource type
-        content = self.data[0].split(" ")[1]
-        print("THIS IS THE CONTENT: ", content)
+        first_header = self.data[0].split(" ")
+        status_code = first_header[0]
+        content = first_header[1]
 
+        in_directory_content = self.find_content_in_directory(content)
 
-        #in_directory_content = self.find_content_in_directory(content)
-        if content.endswith("/"):
-            self.return_405_error(content, self.data)
-            s
-        elif self.get_mime_type(content):
-            self.send_message_response(content, self.data)
-            
-        else:
-            self.error_404_not_found(content)
+        # if in_directory_content[-1] == "/":
+        #     in_directory_content += "index.html"
+
+        try:
+            if status_code != "GET":
+                self.respond_405(content, self.data)
+
+            elif os.path.exists(in_directory_content):
+                if in_directory_content[-1] != '/' and os.path.isdir(in_directory_content):
+                    self.respond_301()
+
+                else:
+                    self.respond_200(in_directory_content, content, self.data)
+
+            else:
+                self.respond_404(content)
+        except:
+            self.respond_404(content)
 
 
 if __name__ == "__main__":
