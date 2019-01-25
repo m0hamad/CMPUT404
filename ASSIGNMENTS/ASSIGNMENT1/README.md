@@ -7,6 +7,12 @@ See requirements.org (plain-text) for a description of the project.
 
 Make a simple webserver.
 
+Sources:
+
+* https://stackoverflow.com/questions/606191/convert-bytes-to-a-string
+* https://www.tutorialspoint.com/python/string_endswith.htm
+* https://docs.python.org/3/library/socketserver.html
+
 Contributors / Licensing
 ========================
 

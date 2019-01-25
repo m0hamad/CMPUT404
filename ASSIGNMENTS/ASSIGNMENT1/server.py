@@ -25,7 +25,7 @@ import socketserver
 class MyWebServer(socketserver.BaseRequestHandler):
 
     def find_content_in_directory(self, content):
-        
+
         print(os.path.abspath(os.getcwd() + "/www" + content))
         return (os.path.abspath(os.getcwd() + "/www" + content))
 
@@ -63,11 +63,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.request.sendall((status_code + mime_type + accept + host + user_agent + connection + new_content).encode("utf-8"))
 
     def respond_301(self):
-        status_code = "HTTP/1.1 \r\n"
+        status_code = "HTTP/1.1 301 Moved Permanently\r\n"
         connection = "Connection: close \r\n\r\n"
         content = ("<html>\n<body> Error 301. Content Moved Permanently. </body>\n</html>")
 
-        self.request.sendall((status_code + connection + content).encode("utf-8"))
+        self.request.send((status_code + connection + content).encode("utf-8"))
 
     def respond_404(self, content):
 
@@ -79,7 +79,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
     def respond_405(self, content, data):
         
-        status_code = "HTTP/1.1 \r\n"
+        status_code = "HTTP/1.1 405 Method Not Allowed\r\n"
         connection = data[-1] + "\r\n\r\n"
         content = ("<html>\n<body> Error 405. The requested content does not support http method 'GET'. </body>\n</html>")
 
@@ -101,8 +101,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         in_directory_content = self.find_content_in_directory(content)
 
-        # if in_directory_content[-1] == "/":
-        #     in_directory_content += "index.html"
+        print(content + "CONTENTTTTT")
+        print(in_directory_content + "IN DIRECTORY CONTENT")
 
         try:
             if status_code != "GET":
