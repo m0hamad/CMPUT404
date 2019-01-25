@@ -48,7 +48,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     # Response body resembles request body that server gets from the client.
     def respond_200(self, in_directory_content, content, data):
 
-        print(content)
+        print(in_directory_content)
         new_content = open(in_directory_content).read()
         print(new_content)
         status_code = "HTTP/1.1 200 OK\r\n"
@@ -106,8 +106,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         in_directory_content = self.find_content_in_directory(content)
 
-        if content[-1] == "/":
-            in_directory_content += "index.html"
+        print(content)
+        print(in_directory_content)
+
+        if content.endswith("/"):
+            in_directory_content += "/index.html"
+
+        print(in_directory_content)
 
         try:
             if status_code != "GET":
