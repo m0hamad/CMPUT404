@@ -114,20 +114,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         print(in_directory_content)
 
-        if status_code != "GET":
-            self.respond_405(content, self.data)
 
-        if Path(in_directory_content).exists() and "www" in in_directory_content:
+        try:
+            if status_code != "GET":
+                self.respond_405(content, self.data)
 
-            if Path(in_directory_content).is_file():
-                self.respond_200(in_directory_content, content, self.data)
-                
+            if Path(in_directory_content).exists() and "www" in in_directory_content:
+
+                if Path(in_directory_content).is_file():
+                    self.respond_200(in_directory_content, content, self.data)
+                    
+                else:
+                    self.respond_301()
+
             else:
-                self.respond_301()
-
-        else:
+                self.respond_404(content)
+        
+        except:
             self.respond_404(content)
-
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
