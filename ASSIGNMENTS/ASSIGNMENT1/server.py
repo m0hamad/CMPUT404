@@ -106,29 +106,26 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         in_directory_content = self.find_content_in_directory(content)
 
-        print(content)
-        print(in_directory_content)
+        print(content + " 1")
+        print(in_directory_content + " 2")
 
         if content.endswith("/"):
             in_directory_content += "/index.html"
 
         print(in_directory_content)
 
-        try:
-            if status_code != "GET":
-                self.respond_405(content, self.data)
+        if status_code != "GET":
+            self.respond_405(content, self.data)
 
-            if Path(in_directory_content).exists() and "www" in in_directory_content:
+        if Path(in_directory_content).exists() and "www" in in_directory_content:
 
-                if Path(in_directory_content).is_file():
-                    self.respond_200(in_directory_content, content, self.data)
-                    
-                else:
-                    self.respond_301()
-
+            if Path(in_directory_content).is_file():
+                self.respond_200(in_directory_content, content, self.data)
+                
             else:
-                self.respond_404(content)
-        except:
+                self.respond_301()
+
+        else:
             self.respond_404(content)
 
 
