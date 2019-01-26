@@ -27,8 +27,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
     def find_content_in_directory(self, content):
 
-        print(os.path.abspath(os.getcwd() + "/www" + content))
-
         path_ = os.path.abspath(os.getcwd() + "/www" + content)
 
         return path_
@@ -50,19 +48,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
     # Response body resembles request body that server gets from the client.
     def respond_200(self, in_directory_content, content, data):
 
-        print(in_directory_content)
         new_content = open(in_directory_content).read()
-        print(new_content)
-        print(type(new_content))
         status_code = "HTTP/1.1 200 OK\r\n"
-        print(status_code)
-        print(type(status_code))
         mime_type = self.get_mime_type(content)
-        print(mime_type)
-        print(type(mime_type))
         connection = data[-1] + "\r\n\r\n"
-        print(connection)
-        print(type(connection))
         
         self.request.send((status_code + mime_type + connection + new_content).encode("utf-8"))
 
@@ -97,8 +86,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip().decode("utf-8").split("\r\n")
         print ("Got a request of: %s\n" % self.data)
 
-        #self.request.sendall(bytearray("OK",'utf-8))
-
         # Get resource type
         first_header = self.data[0].split(" ")
         status_code = first_header[0]
@@ -106,14 +93,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         in_directory_content = self.find_content_in_directory(content)
 
-        print(content + " 1")
-        print(in_directory_content + " 2")
-
         if content.endswith("/"):
             in_directory_content += "/index.html"
-
-        print(in_directory_content)
-
 
         try:
             if status_code != "GET":
