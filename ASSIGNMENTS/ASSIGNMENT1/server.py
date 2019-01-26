@@ -44,6 +44,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
         elif content.endswith(".html"):
             
             return "Content-Type: text/html\r\n"   
+        else:
+            return "Content-Type: text/html\r\n"
     
     # Response body resembles request body that server gets from the client.
     def respond_200(self, in_directory_content, content, data):
@@ -51,20 +53,18 @@ class MyWebServer(socketserver.BaseRequestHandler):
         print(in_directory_content)
         new_content = open(in_directory_content).read()
         print(new_content)
+        print(type(new_content))
         status_code = "HTTP/1.1 200 OK\r\n"
         print(status_code)
+        print(type(status_code))
         mime_type = self.get_mime_type(content)
         print(mime_type)
-        accept = data[1] + "\r\n"
-        print(accept)
-        host = data[2] + "\r\n"
-        print(host)
-        user_agent = data[3] + "\r\n"
-        print(user_agent)
+        print(type(mime_type))
         connection = data[-1] + "\r\n\r\n"
         print(connection)
+        print(type(connection))
         
-        self.request.sendall((status_code + mime_type + accept + host + user_agent + connection + new_content).encode("utf-8"))
+        self.request.send((status_code + mime_type + connection + new_content).encode("utf-8"))
 
     def respond_301(self):
         status_code = "HTTP/1.1 301 Moved Permanently\r\n"
