@@ -25,10 +25,12 @@ import re
 import urllib
 
 def help():
-    print "httpclient.py [GET/POST] [URL]\n"
+    
+    print("httpclient.py [GET/POST] [URL]\n")
 
 class HTTPResponse(object):
-    def __init__(self, code=200, body=""):
+    def __init__(self, code = 200, body = ""):
+
         self.code = code
         self.body = body
 
@@ -77,12 +79,19 @@ class HTTPClient(object):
             return self.GET( url, args )
     
 if __name__ == "__main__":
+
     client = HTTPClient()
     command = "GET"
+
     if (len(sys.argv) <= 1):
+
         help()
         sys.exit(1)
+
     elif (len(sys.argv) == 3):
-        print client.command( sys.argv[2], sys.argv[1] )
+
+        print(client.command( sys.argv[2], sys.argv[1]))
+
     else:
-        print client.command( sys.argv[1] )   
+
+        print(client.command( sys.argv[1]))   
